@@ -574,8 +574,7 @@ function calcForecast({ pensionPV, hishtalmutPV, shukPV, nadlanPV = 0, pensionPM
   let shukFV = fvRaw(shukPV, extraPMT, r);
   let nadlanFV = fvRaw(nadlanPV, nadlanPMT, rN);
   if (applyTax && (shukPV > 0 || extraPMT > 0)) {
-    const gain = shukFV - shukPV - extraPMT * n;
-    shukFV -= Math.max(0, gain) * (taxRate / 100);
+    shukFV = shukFV * (1 - taxRate / 100);
   }
   let total = pensionFV + hishtalmutFV + shukFV + nadlanFV;
   let realTotal = applyInflation ? total / Math.pow(1 + inflation / 100, yr) : total;
