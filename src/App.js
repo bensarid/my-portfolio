@@ -573,7 +573,7 @@ function calcForecast({ pensionPV, hishtalmutPV, shukPV, nadlanPV = 0, pensionPM
   let hishtalmutFV = fvRaw(hishtalmutPV, hishtalmutPMT, r);
   let shukFV = fvRaw(shukPV, extraPMT, r);
   let nadlanFV = fvRaw(nadlanPV, nadlanPMT, rN);
-  if (applyTax && shukPV > 0) {
+  if (applyTax && (shukPV > 0 || extraPMT > 0)) {
     const gain = shukFV - shukPV - extraPMT * n;
     shukFV -= Math.max(0, gain) * (taxRate / 100);
   }
@@ -658,7 +658,7 @@ function ForecastTab({ data, setData, usdRate }) {
           <input type="range" min={1} max={40} value={years} onChange={e => setFs("years", e.target.value)} style={{ width: "100%", accentColor: C.accent }} />
           <div style={{ color: C.accent, fontWeight: 700, fontSize: 18, textAlign: "center" }}>{years} {parseInt(years) === 1 ? "שנה" : "שנים"}</div>
         </div>
-        <Input label="הפקדה חודשית נוספת לשוק הון (₪)" type="number" value={extraMonthly} onChange={v => setFs("extraMonthly", v)} placeholder="500" />
+        <Input label="הפקדה חודשית נוספת לשוק ההון (₪)" type="number" value={extraMonthly} onChange={v => setFs("extraMonthly", v)} placeholder="500" />
         <div style={{ color: C.muted, fontSize: 12, marginBottom: 4 }}>תשואה ממוצעת (פנסיה/שוק): {avgYield.toFixed(1)}%</div>
         <div style={{ color: C.muted, fontSize: 12 }}>הפקדה חודשית כוללת: {fmt(totalMonthly)}</div>
       </Card>
@@ -668,7 +668,7 @@ function ForecastTab({ data, setData, usdRate }) {
         <div style={{ fontSize: 11, color: C.muted, marginBottom: 10 }}>בחר אילו אפיקים ייכללו בתחזית</div>
         <Toggle value={includePension} onChange={v => setFs("includePension", v)} label="פנסיה" sublabel={pensionTotal > 0 ? fmt(pensionTotal) : "אין נתונים"} color={C.accent} />
         <Toggle value={includeHishtalmut} onChange={v => setFs("includeHishtalmut", v)} label="קרן השתלמות" sublabel={hishtalmutTotal > 0 ? fmt(hishtalmutTotal) : "אין נתונים"} color={C.accent2} />
-        <Toggle value={includeShuk} onChange={v => setFs("includeShuk", v)} label="שוק הון" sublabel={shukTotal > 0 ? fmt(shukTotal) : "אין נתונים"} color={C.accent3} />
+        <Toggle value={includeShuk} onChange={v => setFs("includeShuk", v)} label="שוק ההון" sublabel={shukTotal > 0 ? fmt(shukTotal) : "אין נתונים"} color={C.accent3} />
         <Toggle value={includeNadlan} onChange={v => setFs("includeNadlan", v)} label='נדל"ן' sublabel={nadlanTotal > 0 ? `${fmt(nadlanTotal)} | שכ"ד נטו: ${fmt(nadlanNetMonthly)}/חודש` : "אין נתונים"} color={C.orange} />
         {!includePension && !includeHishtalmut && !includeShuk && !includeNadlan && <div style={{ color: C.yellow, fontSize: 12, marginTop: 10, textAlign: "center" }}>⚠️ יש לבחור לפחות אפיק אחד</div>}
       </Card>
@@ -677,7 +677,7 @@ function ForecastTab({ data, setData, usdRate }) {
         <div style={{ fontSize: 13, fontWeight: 700, color: C.text, marginBottom: 8 }}>הגדרות מתקדמות</div>
         <Toggle value={applyInflation} onChange={v => setFs("applyInflation", v)} label="תיקון אינפלציה" sublabel="מציג בכוח קנייה של היום" color={C.accent2} />
         {applyInflation && <div style={{ paddingTop: 10 }}><Input label="אינפלציה שנתית %" type="number" value={inflation} onChange={v => setFs("inflation", v)} placeholder="3" /></div>}
-        <Toggle value={applyTax} onChange={v => setFs("applyTax", v)} label="מס רווחי הון (25%)" sublabel="חל על שוק הון בלבד – לא על השתלמות" color={C.yellow} />
+        <Toggle value={applyTax} onChange={v => setFs("applyTax", v)} label="מס רווחי הון (25%)" sublabel="חל על שוק ההון בלבד – לא על השתלמות" color={C.yellow} />
         {applyTax && <div style={{ paddingTop: 10 }}><Input label="שיעור מס %" type="number" value={taxRate} onChange={v => setFs("taxRate", v)} placeholder="25" /></div>}
       </Card>
 
@@ -693,7 +693,7 @@ function ForecastTab({ data, setData, usdRate }) {
           {[
             { label: "פנסיה", val: pensionFV, color: C.accent, note: "לא פטור ממס רווחי הון" },
             { label: "קרן השתלמות", val: hishtalmutFV, color: C.accent2, note: "✓ פטור ממס רווחי הון" },
-            { label: "שוק הון", val: shukFV, color: C.accent3, note: applyTax ? `לאחר מס ${taxRate}%` : "ללא ניכוי מס" },
+            { label: "שוק ההון", val: shukFV, color: C.accent3, note: applyTax ? `לאחר מס ${taxRate}%` : "ללא ניכוי מס" },
             { label: 'נדל"ן', val: nadlanFV, color: C.orange, note: `שכ"ד נטו בלבד` },
           ].map(({ label, val, color, note }) => (
             <div key={label} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "7px 0", borderBottom: `1px solid ${C.border}` }}>
@@ -753,7 +753,7 @@ function Dashboard({ data, usdRate }) {
   const pieData = [
     { name: "פנסיה", value: pensionTotal, color: C.accent },
     { name: "השתלמות", value: hishtalmutTotal, color: C.accent2 },
-    { name: "שוק הון", value: shukTotal, color: C.accent3 },
+    { name: "שוק ההון", value: shukTotal, color: C.accent3 },
     { name: 'נדל"ן', value: nadlanTotal, color: C.orange },
   ].filter(d => d.value > 0);
 
@@ -772,7 +772,7 @@ function Dashboard({ data, usdRate }) {
       alerts.push({ type: "warn", msg: `${p.name || p.propertyType}: השכירות נמוכה מהמשכנתא – הפסד חודשי` });
   });
 
-  const histData = data.history.slice(-6).map(h => ({ date: h.date, פנסיה: h.pension, השתלמות: h.hishtalmut, "שוק הון": h.shuk, 'נדל"ן': h.nadlan || 0 }));
+  const histData = data.history.slice(-6).map(h => ({ date: h.date, פנסיה: h.pension, השתלמות: h.hishtalmut, "שוק ההון": h.shuk, 'נדל"ן': h.nadlan || 0 }));
 
   return (
     <div>
@@ -787,7 +787,7 @@ function Dashboard({ data, usdRate }) {
         {[
           { label: "פנסיה", val: pensionTotal, color: C.accent },
           { label: "השתלמות", val: hishtalmutTotal, color: C.accent2 },
-          { label: "שוק הון", val: shukTotal, color: C.accent3 },
+          { label: "שוק ההון", val: shukTotal, color: C.accent3 },
           { label: 'נדל"ן', val: nadlanTotal, color: C.orange },
         ].map(({ label, val, color }) => (
           <Card key={label} style={{ padding: 14, textAlign: "center" }}>
@@ -846,7 +846,7 @@ function Dashboard({ data, usdRate }) {
               <Legend wrapperStyle={{ fontSize: 11 }} />
               <Line type="monotone" dataKey="פנסיה" stroke={C.accent} strokeWidth={2} dot={false} />
               <Line type="monotone" dataKey="השתלמות" stroke={C.accent2} strokeWidth={2} dot={false} />
-              <Line type="monotone" dataKey="שוק הון" stroke={C.accent3} strokeWidth={2} dot={false} />
+              <Line type="monotone" dataKey="שוק ההון" stroke={C.accent3} strokeWidth={2} dot={false} />
               <Line type="monotone" dataKey='נדל"ן' stroke={C.orange} strokeWidth={2} dot={false} />
             </LineChart>
           </ResponsiveContainer>
