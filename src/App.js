@@ -121,7 +121,7 @@ async function fetchYieldFromClaude(companyName, track, fundType, years) {
     "אם לא מצאת: {\"yield\": null, \"period\": null, \"source\": null, \"date\": null, \"gemelnet_url\": null}",
     "החזר JSON בלבד."
   ].join(" ");
-  const res = await fetch("https://api.anthropic.com/v1/messages", {
+  const res = await fetch("/api/claude", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
@@ -498,7 +498,7 @@ function HishtalmutTab({ data, setData }) {
 }
 
 async function fetchUsdRate() {
-  const res = await fetch("https://api.anthropic.com/v1/messages", {
+  const res = await fetch("/api/claude", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
@@ -905,7 +905,65 @@ const TABS = [
   { id: "forecast", label: "🔮 תחזית" },
 ];
 
+// ─── PIN SCREEN ─────────────────────────────────────────────────────
+const CORRECT_PIN = "2256";
+const AUTH_KEY = "portfolio_auth_v1";
+
+function PinScreen({ onSuccess }) {
+  const [pin, setPin] = useState("");
+  const [error, setError] = useState(false);
+
+  const handleDigit = (d) => {
+    if (pin.length >= 4) return;
+    const next = pin + d;
+    setPin(next);
+    setError(false);
+    if (next.length === 4) {
+      setTimeout(() => {
+        if (next === CORRECT_PIN) {
+          sessionStorage.setItem(AUTH_KEY, "1");
+          onSuccess();
+        } else {
+          setError(true);
+          setTimeout(() => { setPin(""); setError(false); }, 800);
+        }
+      }, 120);
+    }
+  };
+
+  const handleDel = () => { setPin(p => p.slice(0, -1)); setError(false); };
+
+  const keys = ["1","2","3","4","5","6","7","8","9","","0","⌫"];
+
+  return (
+    <div dir="rtl" style={{ minHeight: "100vh", background: C.bg, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", fontFamily: "'Segoe UI', Tahoma, sans-serif" }}>
+      <div style={{ fontSize: 26, fontWeight: 900, background: `linear-gradient(90deg, ${C.accent}, ${C.accent2})`, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", marginBottom: 8 }}>MyPortfolio</div>
+      <div style={{ color: C.muted, fontSize: 14, marginBottom: 36 }}>הזן קוד כניסה</div>
+
+      {/* dots */}
+      <div style={{ display: "flex", gap: 14, marginBottom: 40 }}>
+        {[0,1,2,3].map(i => (
+          <div key={i} style={{ width: 14, height: 14, borderRadius: "50%", background: error ? C.red : pin.length > i ? C.accent : C.border, transition: "background 0.15s" }} />
+        ))}
+      </div>
+
+      {/* keypad */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 72px)", gap: 12 }}>
+        {keys.map((k, i) => (
+          <button key={i} onClick={() => { if (k === "⌫") handleDel(); else if (k) handleDigit(k); }}
+            style={{ width: 72, height: 72, borderRadius: "50%", background: k ? C.surface : "transparent", border: `1px solid ${k ? C.border : "transparent"}`, color: C.text, fontSize: k === "⌫" ? 18 : 22, fontWeight: 600, cursor: k ? "pointer" : "default" }}>
+            {k}
+          </button>
+        ))}
+      </div>
+
+      {error && <div style={{ marginTop: 24, color: C.red, fontSize: 14, fontWeight: 600 }}>קוד שגוי, נסה שוב</div>}
+    </div>
+  );
+}
+
 export default function App() {
+  const [authed, setAuthed] = useState(() => sessionStorage.getItem(AUTH_KEY) === "1");
   const [tab, setTab] = useState("dashboard");
   const [data, setData] = useState(() => loadData() || defaultState);
   const [showSnap, setShowSnap] = useState(false);
@@ -919,6 +977,8 @@ export default function App() {
       return next;
     });
   }, []);
+
+  if (!authed) return <PinScreen onSuccess={() => setAuthed(true)} />;
 
   return (
     <div dir="rtl" style={{ minHeight: "100vh", background: C.bg, color: C.text, fontFamily: "'Segoe UI', Tahoma, sans-serif", maxWidth: 480, margin: "0 auto" }}>
