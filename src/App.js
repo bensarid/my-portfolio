@@ -966,8 +966,11 @@ export default function App() {
   const [tab, setTab] = useState("dashboard");
   const [data, setData] = useState(() => loadData() || defaultState);
   const [showSnap, setShowSnap] = useState(false);
-  const [usdRate, setUsdRate] = useState(null);
-  const [rateDate, setRateDate] = useState(null);
+  const [usdRate, setUsdRate] = useState(() => { const r = localStorage.getItem("usd_rate"); return r ? parseFloat(r) : null; });
+  const [rateDate, setRateDate] = useState(() => localStorage.getItem("usd_rate_date") || null);
+
+  const setUsdRatePersist = (rate) => { setUsdRate(rate); localStorage.setItem("usd_rate", String(rate)); };
+  const setRateDatePersist = (date) => { setRateDate(date); localStorage.setItem("usd_rate_date", date); };
 
   const setDataPersist = useCallback((updater) => {
     setData(prev => {
@@ -993,7 +996,7 @@ export default function App() {
         {tab === "dashboard" && <Dashboard data={data} usdRate={usdRate} />}
         {tab === "pension" && <PensionTab data={data} setData={setDataPersist} />}
         {tab === "hishtalmut" && <HishtalmutTab data={data} setData={setDataPersist} />}
-        {tab === "shuk" && <ShukTab data={data} setData={setDataPersist} usdRate={usdRate} setUsdRate={setUsdRate} rateDate={rateDate} setRateDate={setRateDate} />}
+        {tab === "shuk" && <ShukTab data={data} setData={setDataPersist} usdRate={usdRate} setUsdRate={setUsdRatePersist} rateDate={rateDate} setRateDate={setRateDatePersist} />}
         {tab === "nadlan" && <NadlanTab data={data} setData={setDataPersist} />}
         {tab === "forecast" && <ForecastTab data={data} setData={setDataPersist} usdRate={usdRate} />}
       </div>
