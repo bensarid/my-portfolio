@@ -933,7 +933,7 @@ function PinScreen({ onSuccess }) {
 
   const handleDel = () => { setPin(p => p.slice(0, -1)); setError(false); };
 
-  const keys = ["1","2","3","4","5","6","7","8","9","","0","⌫"];
+  const keys = ["3","2","1","6","5","4","9","8","7","⌫","0",""];
 
   return (
     <div dir="rtl" style={{ minHeight: "100vh", background: C.bg, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", fontFamily: "'Segoe UI', Tahoma, sans-serif" }}>
@@ -948,7 +948,7 @@ function PinScreen({ onSuccess }) {
       </div>
 
       {/* keypad */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 72px)", gap: 12, direction: "ltr" }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 72px)", gap: 12 }}>
         {keys.map((k, i) => (
           <button key={i} onClick={() => { if (k === "⌫") handleDel(); else if (k) handleDigit(k); }}
             style={{ width: 72, height: 72, borderRadius: "50%", background: k ? C.surface : "transparent", border: `1px solid ${k ? C.border : "transparent"}`, color: C.text, fontSize: k === "⌫" ? 18 : 22, fontWeight: 600, cursor: k ? "pointer" : "default" }}>
