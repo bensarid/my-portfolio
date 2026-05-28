@@ -948,7 +948,7 @@ function PinScreen({ onSuccess }) {
       </div>
 
       {/* keypad */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 72px)", gap: 12 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 72px)", gap: 12, direction: "ltr" }}>
         {keys.map((k, i) => (
           <button key={i} onClick={() => { if (k === "⌫") handleDel(); else if (k) handleDigit(k); }}
             style={{ width: 72, height: 72, borderRadius: "50%", background: k ? C.surface : "transparent", border: `1px solid ${k ? C.border : "transparent"}`, color: C.text, fontSize: k === "⌫" ? 18 : 22, fontWeight: 600, cursor: k ? "pointer" : "default" }}>
